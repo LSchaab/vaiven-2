@@ -70,5 +70,48 @@
       <p class="contacto__cierre">Escribinos. Ir y venir también es contestar.</p>
     </section>
   </main>
+  <script type="module">
+    import { herramientas, categorias, equipo, portfolio, contacto } from './data.js';
+    const isTodo = v => !v || v === 'TODO';
+    const $ = id => document.getElementById(id);
+
+    // Herramientas (solo strings no vacíos)
+    $('herramientas-list').innerHTML = herramientas
+      .filter(h => !isTodo(h))
+      .map(h => `<li class="herramienta">${h}</li>`).join('');
+
+    // Categorías (fijas, siempre 5)
+    $('categorias-list').innerHTML = categorias
+      .map(c => `<li class="categoria"><span class="categoria__nombre">${c.nombre}</span><span class="categoria__linea">${c.linea}</span></li>`).join('');
+
+    // Equipo: renderiza el integrante aunque falte el ojo; si falta foto+rol, se saltea
+    $('equipo-grid').innerHTML = equipo
+      .filter(m => !isTodo(m.foto) && !isTodo(m.rol))
+      .map(m => `<figure class="miembro">
+          <img src="${m.foto}" alt="${m.nombre}" loading="lazy">
+          <figcaption><strong>${m.nombre}</strong> — ${m.rol}${isTodo(m.frase) ? '' : `<br><em>“${m.frase}”</em>`}</figcaption>
+        </figure>`).join('');
+
+    // Portfolio: una pieza sin titulo o sin imagen no se renderiza
+    $('portfolio-track').innerHTML = portfolio
+      .filter(p => !isTodo(p.titulo) && !isTodo(p.imagen))
+      .map(p => {
+        const card = `<article class="tarjeta" data-categoria="${p.categoria ?? ''}">
+            <img src="${p.imagen}" alt="${p.titulo}" loading="lazy">
+            <h3>${p.titulo}</h3>
+            ${isTodo(p.descripcion) ? '' : `<p>${p.descripcion}</p>`}
+            ${isTodo(p.herramienta) ? '' : `<span class="tarjeta__tool">${p.herramienta}</span>`}
+          </article>`;
+        return isTodo(p.url) ? card : `<a class="tarjeta-link" href="${p.url}">${card}</a>`;
+      }).join('');
+
+    // Contacto
+    if (!isTodo(contacto.mail)) {
+      const mail = $('contacto-mail'); mail.textContent = contacto.mail; mail.href = `mailto:${contacto.mail}`;
+    }
+    $('contacto-redes').innerHTML = (contacto.redes ?? [])
+      .filter(r => r && !isTodo(r.url))
+      .map(r => `<li><a href="${r.url}">${r.nombre}</a></li>`).join('');
+  </script>
 </body>
 </html>

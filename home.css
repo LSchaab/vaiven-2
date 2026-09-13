@@ -44,3 +44,15 @@ img, video { max-width: 100%; display: block; }
 .manifiesto__texto p { margin: .2em 0; }
 /* momentos de ancla en gris, de impulso quedan en blanco/negro por ahora */
 .herramientas, .manifiesto { background: var(--gris-claro); }
+.herramientas-list { list-style: none; display: flex; flex-wrap: wrap; gap: .5rem; padding: 0; justify-content: center; }
+.herramienta { border: 1px solid var(--negro); border-radius: 999px; padding: .2rem .8rem; font-size: .85rem; }
+.categoria { display: flex; flex-direction: column; margin: .6rem 0; }
+.categoria__nombre { font-weight: 700; }
+.categoria__linea { font-weight: 400; opacity: .8; }
+.equipo-grid { display: flex; gap: 2rem; flex-wrap: wrap; justify-content: center; }
+.miembro img { width: 160px; height: 160px; object-fit: cover; border-radius: 50%; }
+.miembro figcaption { text-align: center; margin-top: .5rem; }
+.portfolio-track { display: flex; gap: 1.5rem; overflow-x: auto; padding-bottom: 1rem; } /* horizontal real llega en Milestone 4 */
+.tarjeta { flex: 0 0 300px; }
+.tarjeta img { aspect-ratio: 4/3; object-fit: cover; }
+.tarjeta__tool { font-size: .8rem; opacity: .7; }

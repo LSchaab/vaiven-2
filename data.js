@@ -14,15 +14,15 @@ export const herramientas = [
 
 export const equipo = [
   { nombre: "Matías",   rol: "Texturizador 3D",    frase: "Te amo Messi",
-    foto: "resources/nosotros/matias.jpg",   ojo: "TODO" },
+    foto: "resources/nosotros/Matias.png",   ojo: "TODO" },
   { nombre: "Bautista", rol: "Modelador 3D",       frase: "Ke decirte",
-    foto: "resources/nosotros/bautista.jpg", ojo: "TODO" },
+    foto: "resources/nosotros/Bautista.png", ojo: "TODO" },
   { nombre: "Agustina", rol: "Directora Creativa", frase: "una gotita y a seguir",
-    foto: "resources/nosotros/agustina.jpg", ojo: "TODO" },
+    foto: "resources/nosotros/Agus.png", ojo: "TODO" },
   { nombre: "Victoria", rol: "Diseñadora Gráfica", frase: "ya no estoy pa estos trotes",
-    foto: "resources/nosotros/victoria.jpg", ojo: "TODO" },
+    foto: "resources/nosotros/Vicky.png", ojo: "TODO" },
   { nombre: "Lourdes",  rol: "Programadora",       frase: "me quiero jubilar",
-    foto: "resources/nosotros/lourdes.jpg",  ojo: "TODO" },
+    foto: "resources/nosotros/Luly.png",  ojo: "TODO" },
 ];
 
 export const portfolio = [];

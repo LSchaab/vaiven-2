@@ -23,3 +23,13 @@ img, video { max-width: 100%; display: block; }
 :focus-visible { outline: 3px solid var(--azul); outline-offset: 2px; }
 
 .bloque { min-height: 100vh; display: grid; place-content: center; padding: 6vw; }
+
+.nav {
+  position: fixed; inset: 0 0 auto 0; z-index: 100;
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 1rem 6vw; mix-blend-mode: difference;
+}
+.nav__logo { font-weight: 800; letter-spacing: .02em; color: var(--blanco); text-decoration: none; }
+.nav__links { list-style: none; display: flex; gap: 1.5rem; margin: 0; padding: 0; }
+.nav__links a { color: var(--blanco); text-decoration: none; font-weight: 500; }
+.nav__links a:hover { text-decoration: underline; }

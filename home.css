@@ -62,7 +62,9 @@ img, video { max-width: 100%; display: block; }
 /* Canvas pinneado a pantalla completa, detrás del contenido. El campo negro es
    el fondo de las partículas (clearRect deja ver este background). */
 #escena {
-  position: fixed; inset: 0; z-index: 0;
+  position: fixed; inset: 0;
+  /* z-index: 0 (no -1): con main en z-index: 1 el contenido queda encima; -1 puede esconder el canvas tras el fondo de la página */
+  z-index: 0;
   pointer-events: none; background: var(--negro);
   display: none; /* aparece solo cuando corre JS */
 }

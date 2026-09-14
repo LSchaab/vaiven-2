@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>VAIVÉN — lab de partículas</title>
+  <style>
+    html, body { margin: 0; height: 100%; background: #fff; overflow: hidden;
+      font-family: system-ui, sans-serif; }
+    #stage { position: fixed; inset: 0; z-index: 0; }
+    #panel { position: fixed; top: 12px; left: 12px; z-index: 10;
+      background: rgba(255,255,255,0.9); border: 1px solid #000; border-radius: 8px;
+      padding: 10px 12px; font-size: 13px; display: grid; gap: 8px; max-width: 240px; }
+    #panel button { cursor: pointer; }
+    #panel .row { display: flex; align-items: center; gap: 6px; justify-content: space-between; }
+    #readout { font-variant-numeric: tabular-nums; opacity: .7; }
+  </style>
+</head>
+<body>
+  <canvas id="stage"></canvas>
+  <div id="panel">
+    <strong>lab de partículas</strong>
+    <div id="controls"><!-- los controles se agregan en tasks siguientes --></div>
+    <div id="readout">—</div>
+  </div>
+  <script type="module">
+    // El bootstrap real (instanciar ParticleSystem, cablear controles) se completa
+    // en los tasks siguientes. Por ahora solo confirmamos que el módulo carga.
+    import { PARTICLE_COUNT } from './particles.js';
+    document.getElementById('readout').textContent = `listo · N=${PARTICLE_COUNT}`;
+  </script>
+</body>
+</html>

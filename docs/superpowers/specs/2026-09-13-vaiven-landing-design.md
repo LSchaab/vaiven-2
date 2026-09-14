@@ -124,3 +124,26 @@ Ninguno bloquea el milestone 1 en sí (se arranca con `TODO`s), pero se piden a 
 - Milestone 1: lista real de herramientas, frases/roles/fotos/ojos de los 5, mail + handles, ID del demoreel, inventario parcial del portfolio, PNG del cerebro. (Todos declarados "los tengo" salvo el portfolio, "parcial".)
 - Confirmar `username` de GitHub al crear el repo → es `LSchaab`.
 - Acción de higiene: actualizar el SPEC §2 para fijar azul = `#2222a0`.
+
+---
+
+## 7. Decisiones posteriores (2026-09-13, durante ejecución)
+
+Tomadas después de cerrar el Milestone 1 (aprobado por Lourdes en el gate; sitio en vivo). Sobreescriben al SPEC y a §2 de este doc donde haya conflicto.
+
+### 7.1 Repo (override)
+- El repo es **`LSchaab/vaiven-2`** (público), no `LSchaab/vaiven`. Se subió **todo** (docs incluidos) por decisión de Lourdes. CNAME sin cambios: `vaiven.lourdesschaab.com`.
+
+### 7.2 Política de librerías (relaja el SPEC §0.1 y CLAUDE.md)
+- Default sigue siendo **vanilla**. GSAP + ScrollTrigger ya autorizada (scroll, M3).
+- **WebGL / Three.js dejan de estar prohibidas.** Se permiten **si son necesarias para un objetivo concreto**, con dos condiciones obligatorias: (a) **argumentar por qué** canvas 2D no alcanza; (b) **pedirle a Lourdes explícitamente qué asset** aportar (modelo `.glb`/`.gltf`, imagen, etc.). Si 2D alcanza, se usa 2D. `CLAUDE.md` ya actualizado (commit d2b26db).
+
+### 7.3 Motor del sistema de partículas — Milestone 2 (decisión)
+- **Canvas 2D ahora, WebGL como upgrade futuro evaluable.** Se construye el sistema en canvas 2D (fiel al SPEC §3, liviano, reversible). Si el equipo 3D (Matías/Bautista) entrega un modelo del cerebro, se evalúa subir a WebGL como mejora con la versión 2D ya andando.
+- Límite asumido de 2D: rotación de **volumen simulado** (z sintético en banda fina, no anatómico) y ~4–8k partículas.
+
+### 7.4 Cerebro — placeholder para arrancar M2
+- Se arranca con un **cerebro placeholder** (silueta procedural) para tunear el sistema sin frenar. Lourdes aporta el **PNG real** después (silueta rellena, fondo transparente, vista de perfil, ~1000–1500px) y se cambia en una línea. Pendiente aún: PNG real del cerebro, ID de YouTube del demoreel (M3).
+
+### 7.5 Azul canónico en partículas
+- La Palanca A (duotonos de partículas) usa el azul canónico **`#2222a0`** y los tokens de `home.css`, NO el `#3A39FF` que todavía figura en el SPEC §2 y §5.8.

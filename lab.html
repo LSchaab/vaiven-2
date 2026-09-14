@@ -24,10 +24,13 @@
     <div id="readout">—</div>
   </div>
   <script type="module">
-    // El bootstrap real (instanciar ParticleSystem, cablear controles) se completa
-    // en los tasks siguientes. Por ahora solo confirmamos que el módulo carga.
-    import { PARTICLE_COUNT } from './particles.js';
-    document.getElementById('readout').textContent = `listo · N=${PARTICLE_COUNT}`;
+    import { ParticleSystem } from './particles.js';
+    const canvas = document.getElementById('stage');
+    const system = new ParticleSystem(canvas);
+    window.__system = system; // handle para debug en consola
+    system.start();
+    document.getElementById('readout').textContent =
+      `N=${system.count} · reduced-motion=${system.reducedMotion}`;
   </script>
 </body>
 </html>

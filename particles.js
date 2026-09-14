@@ -110,3 +110,77 @@ export function morphStep(particles, progress, ease = easeInOutCubic) {
     p.z = lerp(p.oz, p.tz, t);
   }
 }
+
+// Capa 2: la clase que orquesta (browser). NADA de esto corre al importar el módulo:
+// todo acceso a document/window/rAF vive dentro de métodos.
+
+export class ParticleSystem {
+  constructor(canvas, { count = PARTICLE_COUNT } = {}) {
+    this.canvas = canvas;
+    this.ctx = canvas.getContext('2d');
+    this.count = count;
+    this.particles = createParticles(count);
+    this.rotation = 0;
+    this.rotationSpeed = 0.3; // rad/s
+    this.fov = 6; this.depth = 4;
+    this.reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    this.running = false;
+    this._lastT = 0;
+    this._seedShape(shapeCirculo(count));
+    this._resize();
+    window.addEventListener('resize', () => this._resize());
+  }
+
+  // Coloca las partículas directamente en una forma (posición y origen y objetivo).
+  _seedShape(points) {
+    for (let i = 0; i < this.count; i++) {
+      const p = this.particles[i], q = points[i];
+      p.x = p.ox = p.tx = q.x;
+      p.y = p.oy = p.ty = q.y;
+      p.z = p.oz = p.tz = q.z;
+    }
+  }
+
+  _resize() {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    this.canvas.width = window.innerWidth * dpr;
+    this.canvas.height = window.innerHeight * dpr;
+    this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+
+  start() {
+    if (this.running) return;
+    this.running = true;
+    this._lastT = performance.now();
+    requestAnimationFrame(this._frame.bind(this));
+  }
+
+  stop() { this.running = false; }
+
+  _frame(now) {
+    if (!this.running) return;
+    const dt = (now - this._lastT) / 1000;
+    this._lastT = now;
+    if (!this.reducedMotion) this.rotation += this.rotationSpeed * dt;
+    this._render();
+    requestAnimationFrame(this._frame.bind(this));
+  }
+
+  _clear() {
+    this.ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+  }
+
+  _render() {
+    const ctx = this.ctx;
+    const w = window.innerWidth, h = window.innerHeight;
+    this._clear();
+    const cx = w / 2, cy = h / 2, size = Math.min(w, h) * 0.42;
+    ctx.fillStyle = '#000';
+    for (let i = 0; i < this.count; i++) {
+      const rp = rotateY(this.particles[i], this.rotation);
+      const { sx, sy, scale } = project(rp, { fov: this.fov, depth: this.depth, size, cx, cy });
+      const s = scale > 1 ? 2 : 1;
+      ctx.fillRect(sx, sy, s, s);
+    }
+  }
+}

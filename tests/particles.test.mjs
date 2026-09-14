@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { lerp, easeInOutCubic, easeInQuart, easeOutBack, rotateY, project, PARTICLE_COUNT, createParticles, shapePunto, shapeCirculo, shapeCinco, sampleCanvasPixels, maskDarkOpaque, dilateMask, maskBrainLineArt, setTargets, morphStep, PALETTE, duotoneColor } from '../particles.js';
+import { lerp, easeInOutCubic, easeInQuart, easeOutBack, rotateY, project, PARTICLE_COUNT, createParticles, shapePunto, shapeCirculo, shapeCinco, sampleCanvasPixels, maskDarkOpaque, dilateMask, maskBrainLineArt, setTargets, morphStep, PALETTE, duotoneColor, ParticleSystem } from '../particles.js';
 
 test('lerp interpola los extremos y el medio', () => {
   assert.equal(lerp(0, 10, 0), 0);
@@ -197,4 +197,31 @@ test('easeOutBack: extremos fijos y overshoot > 1 antes de asentar', () => {
   let overshoots = false;
   for (let t = 0.5; t < 1; t += 0.02) if (easeOutBack(t) > 1) overshoots = true;
   assert.ok(overshoots, 'easeOutBack debe superar 1 en algún t de (0,1)');
+});
+
+test('beginMorph: fija targets y snapshotea origen, sin animar', () => {
+  const ps = createParticles(1, () => 0.5);
+  ps[0].x = 5; ps[0].y = 6; ps[0].z = 0.02; // posición "actual"
+  const stub = Object.create(ParticleSystem.prototype);
+  stub.particles = ps;
+  stub._shapes = { punto: [{ x: 1, y: 2, z: 0.1 }] };
+  stub._animating = true; // veníamos animando
+
+  stub.beginMorph('punto');
+
+  assert.equal(stub._animating, false, 'no anima por tiempo');
+  assert.equal(stub._shapeName, 'punto');
+  assert.equal(stub._progress, 0);
+  assert.deepEqual([ps[0].ox, ps[0].oy, ps[0].oz], [5, 6, 0.02], 'origen = posición previa');
+  assert.deepEqual([ps[0].tx, ps[0].ty, ps[0].tz], [1, 2, 0.1], 'objetivo = forma nueva');
+  // no movió las partículas todavía (progreso 0 lo aplica el scroll)
+  assert.deepEqual([ps[0].x, ps[0].y], [5, 6]);
+});
+
+test('beginMorph: forma inexistente es no-op', () => {
+  const ps = createParticles(1, () => 0.5);
+  const stub = Object.create(ParticleSystem.prototype);
+  stub.particles = ps; stub._shapes = {}; stub._shapeName = 'circulo';
+  stub.beginMorph('no-existe');
+  assert.equal(stub._shapeName, 'circulo');
 });

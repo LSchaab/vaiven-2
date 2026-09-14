@@ -326,6 +326,17 @@ export class ParticleSystem {
     this._shapes[name] = points; // permite inyectar el cerebro real (async) después
   }
 
+  // Prepara un morph hacia `shapeName` (snapshot del origen + objetivo) SIN animar
+  // por tiempo: el número lo maneja el scroll vía setProgressManual. (M3)
+  beginMorph(shapeName) {
+    const pts = this._shapes[shapeName];
+    if (!pts) return;
+    setTargets(this.particles, pts);
+    this._shapeName = shapeName;
+    this._animating = false;
+    this._progress = 0;
+  }
+
   // Arranca una transición animada hacia `shapeName` (progress 0→1 en morphDuration).
   morphTo(shapeName) {
     const pts = this._shapes[shapeName];

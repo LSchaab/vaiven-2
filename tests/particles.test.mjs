@@ -90,6 +90,9 @@ test('sampleCanvasPixels: solo píxeles alpha>128, normalizados a [-1,1]', () =>
     // todos deben salir del único píxel opaco (col 1, fila 0) → mismo x,y
     assert.ok(Math.abs(p.x - pts[0].x) < 1e-9 && Math.abs(p.y - pts[0].y) < 1e-9);
   }
+  // orientación: un píxel de la fila de arriba (py=0) debe dar y NEGATIVO
+  // (para que con sy = cy + p.y quede ARRIBA en pantalla, no dado vuelta)
+  assert.ok(pts[0].y < 0, 'pixel de arriba de la imagen → y negativo (no invertido)');
 });
 
 test('maskDarkOpaque conserva solo pixeles opacos Y oscuros', () => {

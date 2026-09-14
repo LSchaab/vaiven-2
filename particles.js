@@ -108,7 +108,7 @@ export function sampleCanvasPixels(imageData, count, rng = Math.random) {
     const py = (idx / width) | 0;
     pts[k] = {
       x: (px - width / 2) / (maxDim / 2),
-      y: -((py - height / 2) / (maxDim / 2)),
+      y: (py - height / 2) / (maxDim / 2),
       z: zJitter(rng),
     };
   }

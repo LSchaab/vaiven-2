@@ -142,8 +142,10 @@ Tomadas después de cerrar el Milestone 1 (aprobado por Lourdes en el gate; siti
 - **Canvas 2D ahora, WebGL como upgrade futuro evaluable.** Se construye el sistema en canvas 2D (fiel al SPEC §3, liviano, reversible). Si el equipo 3D (Matías/Bautista) entrega un modelo del cerebro, se evalúa subir a WebGL como mejora con la versión 2D ya andando.
 - Límite asumido de 2D: rotación de **volumen simulado** (z sintético en banda fina, no anatómico) y ~4–8k partículas.
 
-### 7.4 Cerebro — placeholder para arrancar M2
-- Se arranca con un **cerebro placeholder** (silueta procedural) para tunear el sistema sin frenar. Lourdes aporta el **PNG real** después (silueta rellena, fondo transparente, vista de perfil, ~1000–1500px) y se cambia en una línea. Pendiente aún: PNG real del cerebro, ID de YouTube del demoreel (M3).
+### 7.4 Cerebro — resuelto en M2
+- El **PNG real del cerebro** ya está (`resources/cerebro.png`, cerebro negro sobre fondo blanco opaco). Se muestrea con máscara **"opaco Y oscuro"** para aislarlo del fondo. Se agregaron 3 modos de relleno (silueta / sólido / líneas); Lourdes eligió **líneas** (contorno + pliegues, via flood-fill). Fix de orientación aplicado (el cerebro salía de cabeza por doble inversión de `y`).
+- **Defaults del sistema de partículas fijados (M2):** cerebro en modo **líneas**, `pointSize` **2.5**, densidad de arranque **12000**, color ancla **lila `#B4B4ED`** (paleta secundaria, reemplaza el gris), fondo de referencia del lab **negro**.
+- **ID de YouTube del demoreel:** `RQfjTjdYvTQ` (para el lightbox del ícono del ojo, M3).
 
 ### 7.5 Azul canónico en partículas
 - La Palanca A (duotonos de partículas) usa el azul canónico **`#2222a0`** y los tokens de `home.css`, NO el `#3A39FF` que todavía figura en el SPEC §2 y §5.8.

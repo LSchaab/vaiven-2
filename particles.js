@@ -228,6 +228,8 @@ export class ParticleSystem {
     this.pair = [PALETTE.naranja, PALETTE.azul]; // par de impulso por defecto
     this.paletteMix = 0;                          // 0=color, 1=color ancla
     this.anclaColor = PALETTE.lila; // color del momento ancla (secundario)
+    this.pointSize = 2;        // tamaño base del punto (px), escalado por perspectiva
+    this.bgColor = '#ffffff';  // fondo actual: estelas conscientes del fondo
     this.trails = false;
     this._frames = 0; this._fpsT = performance.now(); this.onFps = null;
   }
@@ -306,8 +308,13 @@ export class ParticleSystem {
 
   _clear() {
     const ctx = this.ctx, w = window.innerWidth, h = window.innerHeight;
-    if (this.trails) { ctx.fillStyle = 'rgba(255,255,255,0.08)'; ctx.fillRect(0, 0, w, h); }
-    else ctx.clearRect(0, 0, w, h);
+    if (this.trails) {
+      const { r, g, b } = hexToRgb(this.bgColor);
+      ctx.fillStyle = `rgba(${r},${g},${b},0.08)`;
+      ctx.fillRect(0, 0, w, h);
+    } else {
+      ctx.clearRect(0, 0, w, h);
+    }
   }
 
   setTrails(on) {
@@ -349,7 +356,7 @@ export class ParticleSystem {
         if ((p.seed < 0.5 ? 0 : 1) !== pass) continue;
         const rp = rotateY(p, this.rotation);
         const { sx, sy, scale } = project(rp, { fov: this.fov, depth: this.depth, size, cx, cy });
-        const s = scale > 1 ? 2 : 1;
+        const s = Math.max(1, Math.round(this.pointSize * scale));
         ctx.fillRect(sx, sy, s, s);
       }
     }

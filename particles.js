@@ -308,7 +308,7 @@ export class ParticleSystem {
     this.pair = [PALETTE.naranja, PALETTE.azul]; // par de impulso por defecto
     this.paletteMix = 0;                          // 0=color, 1=color ancla
     this.anclaColor = PALETTE.lila; // color del momento ancla (secundario)
-    this.pointSize = 2;        // tamaño base del punto (px), escalado por perspectiva
+    this.pointSize = 2.5;      // tamaño base del punto (px), escalado por perspectiva
     this.bgColor = '#ffffff';  // fondo actual: estelas conscientes del fondo
     this.trails = false;
     this._frames = 0; this._fpsT = performance.now(); this.onFps = null;

@@ -29,9 +29,9 @@
       </div>
       <label class="row">modo cerebro
         <select id="brainMode">
+          <option value="lineas" selected>líneas</option>
           <option value="solido">sólido</option>
           <option value="silueta">silueta</option>
-          <option value="lineas">líneas</option>
         </select>
       </label>
       <label class="row">progreso
@@ -61,11 +61,11 @@
       <label class="row">estelas
         <input id="trails" type="checkbox">
       </label>
-      <label class="row">cantidad <span id="countVal">9000</span>
-        <input id="count" type="range" min="1000" max="16000" step="500" value="9000">
+      <label class="row">cantidad <span id="countVal">12000</span>
+        <input id="count" type="range" min="1000" max="16000" step="500" value="12000">
       </label>
-      <label class="row">tamaño punto <span id="psVal">2</span>
-        <input id="psize" type="range" min="1" max="5" step="0.5" value="2">
+      <label class="row">tamaño punto <span id="psVal">2.5</span>
+        <input id="psize" type="range" min="1" max="5" step="0.5" value="2.5">
       </label>
       <label class="row">vel. rotación <span id="rsVal">0.3</span>
         <input id="rspeed" type="range" min="0" max="1.5" step="0.1" value="0.3">
@@ -75,8 +75,8 @@
       </label>
       <label class="row">fondo
         <select id="bg">
+          <option value="#111111" selected>negro</option>
           <option value="#ffffff">blanco</option>
-          <option value="#111111">negro</option>
         </select>
       </label>
       <label class="row">simular reduced-motion
@@ -88,9 +88,12 @@
   <script type="module">
     import { ParticleSystem, sampleShape, maskDarkOpaque, dilateMask, maskBrainLineArt, PALETTE as PAL } from './particles.js';
     const canvas = document.getElementById('stage');
-    const system = new ParticleSystem(canvas, { count: 9000 });
+    const system = new ParticleSystem(canvas, { count: 12000 });
     window.__system = system; // handle para debug en consola
     system.start();
+    system.bgColor = '#111111';
+    document.body.style.background = '#111111';
+    document.getElementById('stage').style.background = '#111111';
     document.getElementById('readout').textContent =
       `N=${system.count} · reduced-motion=${system.reducedMotion}`;
     for (const btn of document.querySelectorAll('[data-shape]')) {
@@ -136,7 +139,7 @@
         `N=${system.count} · ${fps} fps · reduced-motion=${system.reducedMotion}`;
     };
     // Cerebro real: reemplaza el placeholder cuando carga el PNG.
-    let brainMode = 'solido';
+    let brainMode = 'lineas';
     const brainMasks = {
       silueta: maskDarkOpaque,
       solido: (img) => dilateMask(maskDarkOpaque(img), 5),

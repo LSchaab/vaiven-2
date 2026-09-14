@@ -91,8 +91,13 @@ for (const b of BLOCKS) {
       onEnterBack: () => applyEnter(b, true),
     });
   } else {
+    // con secciones de 100vh, start:'top bottom'→end:'top center' da un rango de media
+    // pantalla por bloque, sin solaparse con el vecino; el morph completa (progress 1)
+    // cuando la sección llega al centro y se queda asentado mientras se lee. Antes
+    // (end:'bottom top') los rangos se solapaban ~1 pantalla y los bloques se pisaban el
+    // estado compartido (morphs sin completar; el sweep/estelas del punto sangraban a herramientas).
     ScrollTrigger.create({
-      trigger: el, start: 'top bottom', end: 'bottom top', scrub: 1,
+      trigger: el, start: 'top bottom', end: 'top center', scrub: 1,
       onEnter: () => applyEnter(b, false),
       onEnterBack: () => applyEnter(b, false),
       onUpdate: (self) => applyScrub(b, self.progress),

@@ -33,11 +33,20 @@
       <label class="row">rotación
         <input id="rot" type="checkbox" checked>
       </label>
+      <label class="row">paleta impulso→ancla
+        <input id="mix" type="range" min="0" max="1" step="0.01" value="0">
+      </label>
+      <label class="row">par
+        <select id="pair">
+          <option value="naranja-azul">naranja / azul</option>
+          <option value="violeta-amarillo">violeta / amarillo</option>
+        </select>
+      </label>
     </div>
     <div id="readout">—</div>
   </div>
   <script type="module">
-    import { ParticleSystem, sampleShape } from './particles.js';
+    import { ParticleSystem, sampleShape, PALETTE as PAL } from './particles.js';
     const canvas = document.getElementById('stage');
     const system = new ParticleSystem(canvas);
     window.__system = system; // handle para debug en consola
@@ -51,6 +60,13 @@
     progress.addEventListener('input', () => system.setProgressManual(parseFloat(progress.value)));
     const rot = document.getElementById('rot');
     rot.addEventListener('change', () => { system.rotationSpeed = rot.checked ? 0.3 : 0; });
+    const mix = document.getElementById('mix');
+    mix.addEventListener('input', () => { system.paletteMix = parseFloat(mix.value); });
+    const pairSel = document.getElementById('pair');
+    pairSel.addEventListener('change', () => {
+      system.pair = pairSel.value === 'violeta-amarillo'
+        ? [PAL.violeta, PAL.amarillo] : [PAL.naranja, PAL.azul];
+    });
     // Cerebro real: reemplaza el placeholder cuando carga el PNG.
     sampleShape('resources/cerebro.png', system.count)
       .then((pts) => system.registerShape('cerebro', pts))

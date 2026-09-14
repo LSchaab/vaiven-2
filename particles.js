@@ -8,6 +8,27 @@ export const lerp = (a, b, t) => a + (b - a) * t;
 export const easeInOutCubic = (t) =>
   t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 
+// Paleta canónica (espeja los tokens de home.css). Azul = #2222a0 (design doc §7.5).
+export const PALETTE = {
+  naranja: '#FF5B23', azul: '#2222a0',
+  violeta: '#511F99', amarillo: '#FFCC00',
+};
+
+const hexToRgb = (hex) => {
+  const n = parseInt(hex.slice(1), 16);
+  return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 };
+};
+
+// seed elige el extremo del duotono; mix 0=color (impulso), 1=gris (ancla).
+export function duotoneColor(seed, mix, hexA, hexB) {
+  const base = seed < 0.5 ? hexToRgb(hexA) : hexToRgb(hexB);
+  const GRAY = 128;
+  const r = Math.round(lerp(base.r, GRAY, mix));
+  const g = Math.round(lerp(base.g, GRAY, mix));
+  const b = Math.round(lerp(base.b, GRAY, mix));
+  return `rgb(${r},${g},${b})`;
+}
+
 // Rotación sobre el eje Y (SPEC §3: se aplica a x y z antes de proyectar).
 export function rotateY(p, angle) {
   const c = Math.cos(angle);
@@ -201,6 +222,8 @@ export class ParticleSystem {
     this._animating = false;
     this._morphStart = 0;
     this.morphDuration = 1.2; // segundos
+    this.pair = [PALETTE.naranja, PALETTE.azul]; // par de impulso por defecto
+    this.paletteMix = 0;                          // 0=color, 1=gris
   }
 
   registerShape(name, points) {
@@ -278,12 +301,18 @@ export class ParticleSystem {
     const w = window.innerWidth, h = window.innerHeight;
     this._clear();
     const cx = w / 2, cy = h / 2, size = Math.min(w, h) * 0.42;
-    ctx.fillStyle = '#000';
-    for (let i = 0; i < this.count; i++) {
-      const rp = rotateY(this.particles[i], this.rotation);
-      const { sx, sy, scale } = project(rp, { fov: this.fov, depth: this.depth, size, cx, cy });
-      const s = scale > 1 ? 2 : 1;
-      ctx.fillRect(sx, sy, s, s);
+    const colorA = duotoneColor(0, this.paletteMix, this.pair[0], this.pair[1]);   // seed<0.5
+    const colorB = duotoneColor(0.9, this.paletteMix, this.pair[0], this.pair[1]); // seed>=0.5
+    for (let pass = 0; pass < 2; pass++) {
+      ctx.fillStyle = pass === 0 ? colorA : colorB;
+      for (let i = 0; i < this.count; i++) {
+        const p = this.particles[i];
+        if ((p.seed < 0.5 ? 0 : 1) !== pass) continue;
+        const rp = rotateY(p, this.rotation);
+        const { sx, sy, scale } = project(rp, { fov: this.fov, depth: this.depth, size, cx, cy });
+        const s = scale > 1 ? 2 : 1;
+        ctx.fillRect(sx, sy, s, s);
+      }
     }
   }
 }

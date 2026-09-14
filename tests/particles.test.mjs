@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { lerp, easeInOutCubic, rotateY, project, PARTICLE_COUNT, createParticles, shapePunto, shapeCirculo, shapeCinco, sampleCanvasPixels, maskDarkOpaque, setTargets, morphStep } from '../particles.js';
+import { lerp, easeInOutCubic, rotateY, project, PARTICLE_COUNT, createParticles, shapePunto, shapeCirculo, shapeCinco, sampleCanvasPixels, maskDarkOpaque, setTargets, morphStep, PALETTE, duotoneColor } from '../particles.js';
 
 test('lerp interpola los extremos y el medio', () => {
   assert.equal(lerp(0, 10, 0), 0);
@@ -118,4 +118,22 @@ test('setTargets snapshotea el origen y fija el objetivo; morphStep interpola', 
   assert.ok(Math.abs(ps[0].x - 0) < 1e-9, 'progress 0 = origen');
   morphStep(ps, 1);
   assert.ok(Math.abs(ps[0].x - 1) < 1e-9 && Math.abs(ps[0].y - 2) < 1e-9, 'progress 1 = objetivo');
+});
+
+test('PALETTE tiene los hex canonicos (azul #2222a0, NO #3A39FF)', () => {
+  assert.equal(PALETTE.azul.toLowerCase(), '#2222a0');
+  assert.equal(PALETTE.naranja.toUpperCase(), '#FF5B23');
+  assert.equal(PALETTE.violeta.toUpperCase(), '#511F99');
+  assert.equal(PALETTE.amarillo.toUpperCase(), '#FFCC00');
+});
+
+test('duotoneColor: mix=0 devuelve el color del par segun el seed', () => {
+  // seed < 0.5 → hexA ; seed >= 0.5 → hexB
+  assert.equal(duotoneColor(0.1, 0, PALETTE.naranja, PALETTE.azul), 'rgb(255,91,35)');   // #FF5B23
+  assert.equal(duotoneColor(0.9, 0, PALETTE.naranja, PALETTE.azul), 'rgb(34,34,160)');    // #2222a0
+});
+
+test('duotoneColor: mix=1 desatura a gris (ancla), sin importar seed', () => {
+  assert.equal(duotoneColor(0.1, 1, PALETTE.naranja, PALETTE.azul), 'rgb(128,128,128)');
+  assert.equal(duotoneColor(0.9, 1, PALETTE.naranja, PALETTE.azul), 'rgb(128,128,128)');
 });

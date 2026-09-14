@@ -42,6 +42,15 @@
           <option value="violeta-amarillo">violeta / amarillo</option>
         </select>
       </label>
+      <label class="row">estelas
+        <input id="trails" type="checkbox">
+      </label>
+      <label class="row">cantidad <span id="countVal">4000</span>
+        <input id="count" type="range" min="1000" max="8000" step="500" value="4000">
+      </label>
+      <label class="row">simular reduced-motion
+        <input id="rm" type="checkbox">
+      </label>
     </div>
     <div id="readout">—</div>
   </div>
@@ -67,6 +76,20 @@
       system.pair = pairSel.value === 'violeta-amarillo'
         ? [PAL.violeta, PAL.amarillo] : [PAL.naranja, PAL.azul];
     });
+    const trails = document.getElementById('trails');
+    trails.addEventListener('change', () => system.setTrails(trails.checked));
+    const count = document.getElementById('count');
+    const countVal = document.getElementById('countVal');
+    count.addEventListener('input', () => {
+      countVal.textContent = count.value;
+      system.setCount(parseInt(count.value, 10));
+    });
+    const rm = document.getElementById('rm');
+    rm.addEventListener('change', () => system.setReducedMotion(rm.checked));
+    system.onFps = (fps) => {
+      document.getElementById('readout').textContent =
+        `N=${system.count} · ${fps} fps · reduced-motion=${system.reducedMotion}`;
+    };
     // Cerebro real: reemplaza el placeholder cuando carga el PNG.
     sampleShape('resources/cerebro.png', system.count)
       .then((pts) => system.registerShape('cerebro', pts))

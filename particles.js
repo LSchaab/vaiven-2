@@ -224,6 +224,8 @@ export class ParticleSystem {
     this.morphDuration = 1.2; // segundos
     this.pair = [PALETTE.naranja, PALETTE.azul]; // par de impulso por defecto
     this.paletteMix = 0;                          // 0=color, 1=gris
+    this.trails = false;
+    this._frames = 0; this._fpsT = performance.now(); this.onFps = null;
   }
 
   registerShape(name, points) {
@@ -289,11 +291,44 @@ export class ParticleSystem {
       if (this._progress >= 1) this._animating = false;
     }
     this._render();
+    this._frames++;
+    if (now - this._fpsT >= 500) {
+      const fps = Math.round((this._frames * 1000) / (now - this._fpsT));
+      this._frames = 0; this._fpsT = now;
+      if (this.onFps) this.onFps(fps);
+    }
     requestAnimationFrame(this._frame.bind(this));
   }
 
   _clear() {
-    this.ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+    const ctx = this.ctx, w = window.innerWidth, h = window.innerHeight;
+    if (this.trails) { ctx.fillStyle = 'rgba(255,255,255,0.08)'; ctx.fillRect(0, 0, w, h); }
+    else ctx.clearRect(0, 0, w, h);
+  }
+
+  setTrails(on) {
+    this.trails = on;
+    if (!on) this.ctx.clearRect(0, 0, window.innerWidth, window.innerHeight); // limpiar del todo al salir
+  }
+
+  // Reduced-motion: sin auto-rotación y las formas van directo a su estado final.
+  setReducedMotion(on) {
+    this.reducedMotion = on;
+    if (on) { this._animating = false; this._progress = 1; morphStep(this.particles, 1); }
+  }
+
+  // Cambiar la cantidad recrea el array y re-siembra la forma actual.
+  setCount(n) {
+    this.count = n;
+    this.particles = createParticles(n);
+    for (const name of Object.keys(this._shapes)) {
+      // re-muestrear cada forma al nuevo count (se hace en un cambio de cantidad, no en el loop)
+      if (name === 'punto') this._shapes[name] = shapePunto(n);
+      else if (name === 'circulo') this._shapes[name] = shapeCirculo(n);
+      else if (name === 'cinco') this._shapes[name] = shapeCinco(n);
+      else if (name === 'cerebro') this._shapes[name] = placeholderBrainPoints(n);
+    }
+    this._seedShape(this._shapes[this._shapeName] || this._shapes.circulo);
   }
 
   _render() {

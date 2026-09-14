@@ -91,6 +91,22 @@ export function sampleCanvasPixels(imageData, count, rng = Math.random) {
   return pts;
 }
 
+// Aísla una silueta OSCURA sobre cualquier fondo: deja opacos (alpha=255) solo
+// los píxeles que ya eran opacos Y oscuros (luminancia < umbral); el resto alpha=0.
+// Necesario porque el cerebro real es negro sobre fondo blanco opaco: sin esto,
+// sampleCanvasPixels (que filtra alpha>128) muestrearía el rectángulo entero.
+export function maskDarkOpaque(imageData, lumThreshold = 128) {
+  const { data, width, height } = imageData;
+  const out = new Uint8ClampedArray(data.length);
+  for (let i = 0; i < width * height; i++) {
+    const r = data[i*4], g = data[i*4+1], b = data[i*4+2], a = data[i*4+3];
+    const lum = 0.299 * r + 0.587 * g + 0.114 * b;
+    const keep = a > 128 && lum < lumThreshold;
+    out[i*4] = r; out[i*4+1] = g; out[i*4+2] = b; out[i*4+3] = keep ? 255 : 0;
+  }
+  return { data: out, width, height };
+}
+
 // Fija objetivo (tx,ty,tz) y snapshotea la posición actual como origen (ox,oy,oz).
 export function setTargets(particles, points) {
   for (let i = 0; i < particles.length; i++) {
@@ -134,7 +150,7 @@ export async function sampleShape(imagePath, count) {
   const scale = Math.min(S / img.width, S / img.height);
   const dw = img.width * scale, dh = img.height * scale;
   ctx.drawImage(img, (S - dw) / 2, (S - dh) / 2, dw, dh);
-  return sampleCanvasPixels(ctx.getImageData(0, 0, S, S), count);
+  return sampleCanvasPixels(maskDarkOpaque(ctx.getImageData(0, 0, S, S)), count);
 }
 
 // Silueta de cerebro PLACEHOLDER dibujada por código (mientras no está el PNG real).

@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { lerp, easeInOutCubic, rotateY, project, PARTICLE_COUNT, createParticles, shapePunto, shapeCirculo, shapeCinco, sampleCanvasPixels, setTargets, morphStep } from '../particles.js';
+import { lerp, easeInOutCubic, rotateY, project, PARTICLE_COUNT, createParticles, shapePunto, shapeCirculo, shapeCinco, sampleCanvasPixels, maskDarkOpaque, setTargets, morphStep } from '../particles.js';
 
 test('lerp interpola los extremos y el medio', () => {
   assert.equal(lerp(0, 10, 0), 0);
@@ -90,6 +90,22 @@ test('sampleCanvasPixels: solo píxeles alpha>128, normalizados a [-1,1]', () =>
     // todos deben salir del único píxel opaco (col 1, fila 0) → mismo x,y
     assert.ok(Math.abs(p.x - pts[0].x) < 1e-9 && Math.abs(p.y - pts[0].y) < 1e-9);
   }
+});
+
+test('maskDarkOpaque conserva solo pixeles opacos Y oscuros', () => {
+  const width = 4, height = 1;
+  const data = new Uint8ClampedArray(4 * 4);
+  const set = (i, r, g, b, a) => { data[i*4]=r; data[i*4+1]=g; data[i*4+2]=b; data[i*4+3]=a; };
+  set(0, 10, 10, 10, 255);    // negro opaco  → conservar
+  set(1, 255, 255, 255, 255); // blanco opaco → descartar (claro)
+  set(2, 0, 0, 0, 0);         // transparente → descartar
+  set(3, 40, 40, 40, 255);    // gris oscuro opaco → conservar (lum 40 < 128)
+  const m = maskDarkOpaque({ data, width, height });
+  assert.equal(m.data[0*4 + 3], 255, 'negro opaco conservado');
+  assert.equal(m.data[1*4 + 3], 0,   'blanco descartado');
+  assert.equal(m.data[2*4 + 3], 0,   'transparente descartado');
+  assert.equal(m.data[3*4 + 3], 255, 'gris oscuro conservado');
+  assert.equal(m.width, 4); assert.equal(m.height, 1);
 });
 
 test('setTargets snapshotea el origen y fija el objetivo; morphStep interpola', () => {

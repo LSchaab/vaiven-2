@@ -37,7 +37,7 @@
     <div id="readout">—</div>
   </div>
   <script type="module">
-    import { ParticleSystem } from './particles.js';
+    import { ParticleSystem, sampleShape } from './particles.js';
     const canvas = document.getElementById('stage');
     const system = new ParticleSystem(canvas);
     window.__system = system; // handle para debug en consola
@@ -51,6 +51,10 @@
     progress.addEventListener('input', () => system.setProgressManual(parseFloat(progress.value)));
     const rot = document.getElementById('rot');
     rot.addEventListener('change', () => { system.rotationSpeed = rot.checked ? 0.3 : 0; });
+    // Cerebro real: reemplaza el placeholder cuando carga el PNG.
+    sampleShape('resources/cerebro.png', system.count)
+      .then((pts) => system.registerShape('cerebro', pts))
+      .catch((e) => console.warn('cerebro real no cargó; queda el placeholder', e));
   </script>
 </body>
 </html>

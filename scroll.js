@@ -103,4 +103,8 @@ for (const b of BLOCKS) {
 // Fade-in del texto al entrar cada bloque (todas las secciones, incluidas Hero y Portfolio).
 for (const el of document.querySelectorAll('.bloque')) {
   ScrollTrigger.create({ trigger: el, start: 'top 75%', once: true, onEnter: () => el.classList.add('is-in') });
+  // revelar los bloques ya visibles al cargar (ej. Hero above-the-fold): ScrollTrigger no
+  // dispara onEnter de forma fiable para triggers que ya arrancan pasados su start.
+  const r = el.getBoundingClientRect();
+  if (r.top < window.innerHeight * 0.75) el.classList.add('is-in');
 }

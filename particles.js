@@ -238,6 +238,13 @@ export function morphStep(particles, progress, ease = easeInOutCubic) {
   }
 }
 
+// Offset de pantalla (px) por progreso, clampeado. El punto que "recorre la
+// pantalla" (SPEC §5.4) mueve offsetX de un borde al otro con el scroll.
+export function offsetForProgress(progress, from, to) {
+  const t = Math.min(1, Math.max(0, progress));
+  return lerp(from, to, t);
+}
+
 // Muestreo de imagen y cerebro placeholder (browser). Usan document/Image pero SOLO
 // dentro del cuerpo (en runtime); no se ejecuta nada de esto al importar el módulo.
 
@@ -319,6 +326,7 @@ export class ParticleSystem {
     this.bgColor = '#ffffff';  // fondo actual: estelas conscientes del fondo
     this.trails = false;
     this.ease = easeInOutCubic; // easing del morph, seteable por bloque (Palanca C)
+    this.offsetX = 0; this.offsetY = 0; // desplazamiento del centro en pantalla (px)
     this._frames = 0; this._fpsT = performance.now(); this.onFps = null;
   }
 
@@ -445,7 +453,7 @@ export class ParticleSystem {
     const ctx = this.ctx;
     const w = window.innerWidth, h = window.innerHeight;
     this._clear();
-    const cx = w / 2, cy = h / 2, size = Math.min(w, h) * 0.42;
+    const cx = w / 2 + this.offsetX, cy = h / 2 + this.offsetY, size = Math.min(w, h) * 0.42;
     const colorA = duotoneColor(0, this.paletteMix, this.pair[0], this.pair[1], this.anclaColor);   // seed<0.5
     const colorB = duotoneColor(0.9, this.paletteMix, this.pair[0], this.pair[1], this.anclaColor); // seed>=0.5
     for (let pass = 0; pass < 2; pass++) {

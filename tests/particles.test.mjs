@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { lerp, easeInOutCubic, easeInQuart, easeOutBack, rotateY, project, PARTICLE_COUNT, createParticles, shapePunto, shapeCirculo, shapeCinco, sampleCanvasPixels, maskDarkOpaque, dilateMask, maskBrainLineArt, setTargets, morphStep, PALETTE, duotoneColor, ParticleSystem } from '../particles.js';
+import { lerp, easeInOutCubic, easeInQuart, easeOutBack, rotateY, project, PARTICLE_COUNT, createParticles, shapePunto, shapeCirculo, shapeCinco, sampleCanvasPixels, maskDarkOpaque, dilateMask, maskBrainLineArt, setTargets, morphStep, offsetForProgress, PALETTE, duotoneColor, ParticleSystem } from '../particles.js';
 
 test('lerp interpola los extremos y el medio', () => {
   assert.equal(lerp(0, 10, 0), 0);
@@ -154,6 +154,14 @@ test('setTargets snapshotea el origen y fija el objetivo; morphStep interpola', 
   assert.ok(Math.abs(ps[0].x - 0) < 1e-9, 'progress 0 = origen');
   morphStep(ps, 1);
   assert.ok(Math.abs(ps[0].x - 1) < 1e-9 && Math.abs(ps[0].y - 2) < 1e-9, 'progress 1 = objetivo');
+});
+
+test('offsetForProgress: interpola from→to y clampea fuera de [0,1]', () => {
+  assert.equal(offsetForProgress(0, -100, 100), -100);
+  assert.equal(offsetForProgress(1, -100, 100), 100);
+  assert.equal(offsetForProgress(0.5, -100, 100), 0);
+  assert.equal(offsetForProgress(-2, -100, 100), -100, 'clamp abajo');
+  assert.equal(offsetForProgress(2, -100, 100), 100, 'clamp arriba');
 });
 
 test('PALETTE tiene los hex canonicos (azul #2222a0, NO #3A39FF)', () => {

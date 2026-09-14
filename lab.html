@@ -27,6 +27,13 @@
         <button data-shape="cinco">Cinco</button>
         <button data-shape="cerebro">Cerebro</button>
       </div>
+      <label class="row">modo cerebro
+        <select id="brainMode">
+          <option value="solido">sólido</option>
+          <option value="silueta">silueta</option>
+          <option value="lineas">líneas</option>
+        </select>
+      </label>
       <label class="row">progreso
         <input id="progress" type="range" min="0" max="1" step="0.01" value="1">
       </label>
@@ -79,7 +86,7 @@
     <div id="readout">—</div>
   </div>
   <script type="module">
-    import { ParticleSystem, sampleShape, PALETTE as PAL } from './particles.js';
+    import { ParticleSystem, sampleShape, maskDarkOpaque, dilateMask, maskBrainLineArt, PALETTE as PAL } from './particles.js';
     const canvas = document.getElementById('stage');
     const system = new ParticleSystem(canvas, { count: 9000 });
     window.__system = system; // handle para debug en consola
@@ -129,9 +136,23 @@
         `N=${system.count} · ${fps} fps · reduced-motion=${system.reducedMotion}`;
     };
     // Cerebro real: reemplaza el placeholder cuando carga el PNG.
-    sampleShape('resources/cerebro.png', system.count)
-      .then((pts) => system.registerShape('cerebro', pts))
-      .catch((e) => console.warn('cerebro real no cargó; queda el placeholder', e));
+    let brainMode = 'solido';
+    const brainMasks = {
+      silueta: maskDarkOpaque,
+      solido: (img) => dilateMask(maskDarkOpaque(img), 5),
+      lineas: maskBrainLineArt,
+    };
+    async function refreshBrain() {
+      try {
+        const pts = await sampleShape('resources/cerebro.png', system.count, brainMasks[brainMode]);
+        system.registerShape('cerebro', pts);
+        if (system._shapeName === 'cerebro') system.morphTo('cerebro'); // re-aplica la nueva variante
+      } catch (e) { console.warn('cerebro no cargó; queda el placeholder', e); }
+    }
+    refreshBrain(); // carga inicial (modo sólido)
+    const brainModeSel = document.getElementById('brainMode');
+    brainModeSel.addEventListener('change', () => { brainMode = brainModeSel.value; refreshBrain(); });
+    count.addEventListener('change', refreshBrain);
   </script>
 </body>
 </html>

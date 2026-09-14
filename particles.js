@@ -131,6 +131,86 @@ export function maskDarkOpaque(imageData, lumThreshold = 128) {
   return { data: out, width, height };
 }
 
+// Dilata una máscara (alpha 255 = keep) por `radius` píxeles (elemento cuadrado,
+// separable). Cierra huecos finos (los surcos del cerebro) para una silueta maciza.
+export function dilateMask(imageData, radius = 4) {
+  const { data, width, height } = imageData;
+  const N = width * height;
+  const src = new Uint8Array(N);
+  for (let i = 0; i < N; i++) src[i] = data[i * 4 + 3] > 128 ? 1 : 0;
+  if (radius <= 0) {
+    const out0 = new Uint8ClampedArray(data.length);
+    for (let i = 0; i < N; i++) out0[i * 4 + 3] = src[i] ? 255 : 0;
+    return { data: out0, width, height };
+  }
+  const tmp = new Uint8Array(N); // pasada horizontal
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      let on = 0;
+      for (let dx = -radius; dx <= radius && !on; dx++) {
+        const xx = x + dx;
+        if (xx >= 0 && xx < width && src[y * width + xx]) on = 1;
+      }
+      tmp[y * width + x] = on;
+    }
+  }
+  const out = new Uint8ClampedArray(data.length); // pasada vertical
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      let on = 0;
+      for (let dy = -radius; dy <= radius && !on; dy++) {
+        const yy = y + dy;
+        if (yy >= 0 && yy < height && tmp[yy * width + x]) on = 1;
+      }
+      out[(y * width + x) * 4 + 3] = on ? 255 : 0;
+    }
+  }
+  return { data: out, width, height };
+}
+
+// Line-art: aísla las líneas internas (pliegues encerrados, claros) + el contorno
+// (píxeles de la masa adyacentes al fondo). El fondo se detecta por flood-fill desde
+// los bordes sobre los píxeles NO-macizos.
+export function maskBrainLineArt(imageData, lumThreshold = 128) {
+  const { data, width, height } = imageData;
+  const N = width * height;
+  const solid = new Uint8Array(N); // oscuro y opaco = masa del cerebro
+  for (let i = 0; i < N; i++) {
+    const a = data[i * 4 + 3];
+    const lum = 0.299 * data[i * 4] + 0.587 * data[i * 4 + 1] + 0.114 * data[i * 4 + 2];
+    solid[i] = (a > 128 && lum < lumThreshold) ? 1 : 0;
+  }
+  const bg = new Uint8Array(N);
+  const stack = [];
+  const push = (x, y) => {
+    if (x < 0 || y < 0 || x >= width || y >= height) return;
+    const i = y * width + x;
+    if (!solid[i] && !bg[i]) { bg[i] = 1; stack.push(i); }
+  };
+  for (let x = 0; x < width; x++) { push(x, 0); push(x, height - 1); }
+  for (let y = 0; y < height; y++) { push(0, y); push(width - 1, y); }
+  while (stack.length) {
+    const i = stack.pop(); const x = i % width, y = (i / width) | 0;
+    push(x - 1, y); push(x + 1, y); push(x, y - 1); push(x, y + 1);
+  }
+  const out = new Uint8ClampedArray(data.length);
+  for (let i = 0; i < N; i++) {
+    const x = i % width, y = (i / width) | 0;
+    let keep = 0;
+    if (!solid[i] && !bg[i]) {
+      keep = 1; // claro encerrado = línea interna (pliegue)
+    } else if (solid[i]) {
+      const nb = [[x - 1, y], [x + 1, y], [x, y - 1], [x, y + 1]];
+      for (const [nx, ny] of nb) {
+        if (nx < 0 || ny < 0 || nx >= width || ny >= height) continue;
+        if (bg[ny * width + nx]) { keep = 1; break; } // masa adyacente al fondo = contorno
+      }
+    }
+    out[i * 4 + 3] = keep ? 255 : 0;
+  }
+  return { data: out, width, height };
+}
+
 // Fija objetivo (tx,ty,tz) y snapshotea la posición actual como origen (ox,oy,oz).
 export function setTargets(particles, points) {
   for (let i = 0; i < particles.length; i++) {
@@ -164,7 +244,7 @@ function loadImage(src) {
   });
 }
 
-export async function sampleShape(imagePath, count) {
+export async function sampleShape(imagePath, count, maskFn = maskDarkOpaque) {
   const img = await loadImage(imagePath);
   const S = 512;
   const c = document.createElement('canvas');
@@ -174,7 +254,7 @@ export async function sampleShape(imagePath, count) {
   const scale = Math.min(S / img.width, S / img.height);
   const dw = img.width * scale, dh = img.height * scale;
   ctx.drawImage(img, (S - dw) / 2, (S - dh) / 2, dw, dh);
-  return sampleCanvasPixels(maskDarkOpaque(ctx.getImageData(0, 0, S, S)), count);
+  return sampleCanvasPixels(maskFn(ctx.getImageData(0, 0, S, S)), count);
 }
 
 // Silueta de cerebro PLACEHOLDER dibujada por código (mientras no está el PNG real).

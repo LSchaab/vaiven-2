@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { lerp, easeInOutCubic, rotateY, project, PARTICLE_COUNT, createParticles, shapePunto, shapeCirculo, shapeCinco, sampleCanvasPixels, maskDarkOpaque, setTargets, morphStep, PALETTE, duotoneColor } from '../particles.js';
+import { lerp, easeInOutCubic, rotateY, project, PARTICLE_COUNT, createParticles, shapePunto, shapeCirculo, shapeCinco, sampleCanvasPixels, maskDarkOpaque, dilateMask, maskBrainLineArt, setTargets, morphStep, PALETTE, duotoneColor } from '../particles.js';
 
 test('lerp interpola los extremos y el medio', () => {
   assert.equal(lerp(0, 10, 0), 0);
@@ -106,6 +106,39 @@ test('maskDarkOpaque conserva solo pixeles opacos Y oscuros', () => {
   assert.equal(m.data[2*4 + 3], 0,   'transparente descartado');
   assert.equal(m.data[3*4 + 3], 255, 'gris oscuro conservado');
   assert.equal(m.width, 4); assert.equal(m.height, 1);
+});
+
+test('dilateMask expande la máscara al radio dado', () => {
+  // 3x3, solo el centro está "keep" (alpha 255); radio 1 → los 9 quedan keep
+  const width = 3, height = 3;
+  const data = new Uint8ClampedArray(9 * 4);
+  data[(1 * 3 + 1) * 4 + 3] = 255; // centro opaco
+  const d = dilateMask({ data, width, height }, 1);
+  for (let i = 0; i < 9; i++) assert.equal(d.data[i * 4 + 3], 255, `pixel ${i} debe quedar keep`);
+});
+
+test('dilateMask radio 0 no cambia nada', () => {
+  const width = 3, height = 3;
+  const data = new Uint8ClampedArray(9 * 4);
+  data[(1 * 3 + 1) * 4 + 3] = 255;
+  const d = dilateMask({ data, width, height }, 0);
+  let kept = 0; for (let i = 0; i < 9; i++) if (d.data[i * 4 + 3] === 255) kept++;
+  assert.equal(kept, 1, 'solo el centro');
+});
+
+test('maskBrainLineArt: contorno + líneas internas, no la masa ni el fondo', () => {
+  // 5x5: anillo oscuro (masa) con centro claro encerrado, sobre fondo claro
+  const width = 5, height = 5;
+  const data = new Uint8ClampedArray(25 * 4);
+  const L = (i) => { data[i*4]=255; data[i*4+1]=255; data[i*4+2]=255; data[i*4+3]=255; }; // claro opaco
+  const D = (i) => { data[i*4]=10;  data[i*4+1]=10;  data[i*4+2]=10;  data[i*4+3]=255; }; // oscuro opaco
+  for (let i = 0; i < 25; i++) L(i);              // todo claro
+  const ring = [6,7,8,11,13,16,17,18];            // anillo 3x3 (sin el centro 12)
+  for (const i of ring) D(i);                     // masa oscura
+  const m = maskBrainLineArt({ data, width, height });
+  assert.equal(m.data[12 * 4 + 3], 255, 'centro claro encerrado = línea interna → keep');
+  assert.equal(m.data[6 * 4 + 3], 255, 'pixel del anillo (contorno) → keep');
+  assert.equal(m.data[0 * 4 + 3], 0, 'fondo claro del borde → descartado');
 });
 
 test('setTargets snapshotea el origen y fija el objetivo; morphStep interpola', () => {

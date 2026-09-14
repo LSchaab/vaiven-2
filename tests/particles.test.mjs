@@ -125,6 +125,11 @@ test('PALETTE tiene los hex canonicos (azul #2222a0, NO #3A39FF)', () => {
   assert.equal(PALETTE.naranja.toUpperCase(), '#FF5B23');
   assert.equal(PALETTE.violeta.toUpperCase(), '#511F99');
   assert.equal(PALETTE.amarillo.toUpperCase(), '#FFCC00');
+  assert.equal(PALETTE.lila.toUpperCase(), '#B4B4ED');
+  assert.equal(PALETTE['gris-claro'].toUpperCase(), '#D9D2CC');
+  assert.equal(PALETTE['verde-agua'].toUpperCase(), '#ADE6ED');
+  assert.equal(PALETTE.verde.toUpperCase(), '#167A72');
+  assert.equal(PALETTE['azul-oscuro'].toUpperCase(), '#1A237E');
 });
 
 test('duotoneColor: mix=0 devuelve el color del par segun el seed', () => {
@@ -133,7 +138,10 @@ test('duotoneColor: mix=0 devuelve el color del par segun el seed', () => {
   assert.equal(duotoneColor(0.9, 0, PALETTE.naranja, PALETTE.azul), 'rgb(34,34,160)');    // #2222a0
 });
 
-test('duotoneColor: mix=1 desatura a gris (ancla), sin importar seed', () => {
-  assert.equal(duotoneColor(0.1, 1, PALETTE.naranja, PALETTE.azul), 'rgb(128,128,128)');
-  assert.equal(duotoneColor(0.9, 1, PALETTE.naranja, PALETTE.azul), 'rgb(128,128,128)');
+test('duotoneColor: mix=1 desatura al COLOR ANCLA secundario (no gris)', () => {
+  // default ancla = lila #B4B4ED = rgb(180,180,237)
+  assert.equal(duotoneColor(0.1, 1, PALETTE.naranja, PALETTE.azul), 'rgb(180,180,237)');
+  assert.equal(duotoneColor(0.9, 1, PALETTE.naranja, PALETTE.azul), 'rgb(180,180,237)');
+  // ancla explícita (verde #167A72 = rgb(22,122,114))
+  assert.equal(duotoneColor(0.9, 1, PALETTE.naranja, PALETTE.azul, PALETTE.verde), 'rgb(22,122,114)');
 });

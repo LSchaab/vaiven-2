@@ -42,6 +42,15 @@
           <option value="violeta-amarillo">violeta / amarillo</option>
         </select>
       </label>
+      <label class="row">color ancla
+        <select id="ancla">
+          <option value="lila">lila</option>
+          <option value="verde-agua">verde agua</option>
+          <option value="verde">verde</option>
+          <option value="azul-oscuro">azul oscuro</option>
+          <option value="gris-claro">gris claro</option>
+        </select>
+      </label>
       <label class="row">estelas
         <input id="trails" type="checkbox">
       </label>
@@ -76,6 +85,8 @@
       system.pair = pairSel.value === 'violeta-amarillo'
         ? [PAL.violeta, PAL.amarillo] : [PAL.naranja, PAL.azul];
     });
+    const ancla = document.getElementById('ancla');
+    ancla.addEventListener('change', () => { system.anclaColor = PAL[ancla.value]; });
     const trails = document.getElementById('trails');
     trails.addEventListener('change', () => system.setTrails(trails.checked));
     const count = document.getElementById('count');

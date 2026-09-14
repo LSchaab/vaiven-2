@@ -12,6 +12,9 @@ export const easeInOutCubic = (t) =>
 export const PALETTE = {
   naranja: '#FF5B23', azul: '#2222a0',
   violeta: '#511F99', amarillo: '#FFCC00',
+  // secundarios (paleta "apagada y sobria")
+  'gris-claro': '#D9D2CC', lila: '#B4B4ED', 'verde-agua': '#ADE6ED',
+  verde: '#167A72', 'azul-oscuro': '#1A237E',
 };
 
 const hexToRgb = (hex) => {
@@ -19,13 +22,13 @@ const hexToRgb = (hex) => {
   return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 };
 };
 
-// seed elige el extremo del duotono; mix 0=color (impulso), 1=gris (ancla).
-export function duotoneColor(seed, mix, hexA, hexB) {
+// seed elige el extremo del duotono; mix 0=color (impulso), 1=color ancla (secundario).
+export function duotoneColor(seed, mix, hexA, hexB, anclaHex = '#B4B4ED') {
   const base = seed < 0.5 ? hexToRgb(hexA) : hexToRgb(hexB);
-  const GRAY = 128;
-  const r = Math.round(lerp(base.r, GRAY, mix));
-  const g = Math.round(lerp(base.g, GRAY, mix));
-  const b = Math.round(lerp(base.b, GRAY, mix));
+  const anc = hexToRgb(anclaHex);
+  const r = Math.round(lerp(base.r, anc.r, mix));
+  const g = Math.round(lerp(base.g, anc.g, mix));
+  const b = Math.round(lerp(base.b, anc.b, mix));
   return `rgb(${r},${g},${b})`;
 }
 
@@ -223,7 +226,8 @@ export class ParticleSystem {
     this._morphStart = 0;
     this.morphDuration = 1.2; // segundos
     this.pair = [PALETTE.naranja, PALETTE.azul]; // par de impulso por defecto
-    this.paletteMix = 0;                          // 0=color, 1=gris
+    this.paletteMix = 0;                          // 0=color, 1=color ancla
+    this.anclaColor = PALETTE.lila; // color del momento ancla (secundario)
     this.trails = false;
     this._frames = 0; this._fpsT = performance.now(); this.onFps = null;
   }
@@ -336,8 +340,8 @@ export class ParticleSystem {
     const w = window.innerWidth, h = window.innerHeight;
     this._clear();
     const cx = w / 2, cy = h / 2, size = Math.min(w, h) * 0.42;
-    const colorA = duotoneColor(0, this.paletteMix, this.pair[0], this.pair[1]);   // seed<0.5
-    const colorB = duotoneColor(0.9, this.paletteMix, this.pair[0], this.pair[1]); // seed>=0.5
+    const colorA = duotoneColor(0, this.paletteMix, this.pair[0], this.pair[1], this.anclaColor);   // seed<0.5
+    const colorB = duotoneColor(0.9, this.paletteMix, this.pair[0], this.pair[1], this.anclaColor); // seed>=0.5
     for (let pass = 0; pass < 2; pass++) {
       ctx.fillStyle = pass === 0 ? colorA : colorB;
       for (let i = 0; i < this.count; i++) {

@@ -56,3 +56,44 @@ img, video { max-width: 100%; display: block; }
 .tarjeta { flex: 0 0 300px; }
 .tarjeta img { aspect-ratio: 4/3; object-fit: cover; }
 .tarjeta__tool { font-size: .8rem; opacity: .7; }
+
+/* --- Milestone 3: canvas de partículas + tema con scroll --- */
+
+/* Canvas pinneado a pantalla completa, detrás del contenido. El campo negro es
+   el fondo de las partículas (clearRect deja ver este background). */
+#escena {
+  position: fixed; inset: 0; z-index: 0;
+  pointer-events: none; background: var(--negro);
+  display: none; /* aparece solo cuando corre JS */
+}
+.scroll-on #escena { display: block; }
+main { position: relative; z-index: 1; } /* contenido por encima del canvas */
+
+/* Tema oscuro: SOLO con JS (.scroll-on). Sin JS queda el esqueleto de M1
+   (texto oscuro sobre blanco), legible. Piso no-negociable. */
+.scroll-on { background: var(--negro); }
+.scroll-on body { color: var(--blanco); }
+/* los bloques narrativos pierden su fondo sólido: se ve el canvas detrás */
+.scroll-on .bloque { background: transparent; }
+.scroll-on .herramienta { border-color: currentColor; }
+/* Portfolio (bloque 8, scroll normal de M4): fondo opaco para que el canvas no se cuele */
+.scroll-on .portfolio { background: var(--blanco); color: var(--negro); }
+
+/* Fade-in simple del texto al entrar cada bloque (M3: sin coreografía fina, eso es M5).
+   Gateado por .scroll-on para no ocultar nada sin JS. */
+.scroll-on .bloque > * { opacity: 0; transform: translateY(12px); transition: opacity .6s ease, transform .6s ease; }
+.scroll-on .bloque.is-in > * { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) {
+  .scroll-on .bloque > * { opacity: 1; transform: none; transition: none; }
+}
+
+/* Lightbox del demoreel (lightbox.js) */
+.lightbox { border: 0; padding: 0; background: transparent; max-width: 90vw; max-height: 90vh; }
+.lightbox::backdrop { background: rgba(0,0,0,.8); }
+.lightbox__inner { position: relative; }
+.lightbox__frame { position: relative; width: min(90vw, 160vh); aspect-ratio: 16 / 9; }
+.lightbox__frame iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+.lightbox__close {
+  position: absolute; top: -2.5rem; right: 0; z-index: 1;
+  background: none; border: 0; color: var(--blanco); font-size: 1.5rem; cursor: pointer;
+}

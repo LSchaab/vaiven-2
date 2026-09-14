@@ -20,7 +20,20 @@
   <canvas id="stage"></canvas>
   <div id="panel">
     <strong>lab de partículas</strong>
-    <div id="controls"><!-- los controles se agregan en tasks siguientes --></div>
+    <div id="controls">
+      <div class="row">
+        <button data-shape="punto">Punto</button>
+        <button data-shape="circulo">Círculo</button>
+        <button data-shape="cinco">Cinco</button>
+        <button data-shape="cerebro">Cerebro</button>
+      </div>
+      <label class="row">progreso
+        <input id="progress" type="range" min="0" max="1" step="0.01" value="1">
+      </label>
+      <label class="row">rotación
+        <input id="rot" type="checkbox" checked>
+      </label>
+    </div>
     <div id="readout">—</div>
   </div>
   <script type="module">
@@ -31,6 +44,13 @@
     system.start();
     document.getElementById('readout').textContent =
       `N=${system.count} · reduced-motion=${system.reducedMotion}`;
+    for (const btn of document.querySelectorAll('[data-shape]')) {
+      btn.addEventListener('click', () => system.morphTo(btn.dataset.shape));
+    }
+    const progress = document.getElementById('progress');
+    progress.addEventListener('input', () => system.setProgressManual(parseFloat(progress.value)));
+    const rot = document.getElementById('rot');
+    rot.addEventListener('change', () => { system.rotationSpeed = rot.checked ? 0.3 : 0; });
   </script>
 </body>
 </html>

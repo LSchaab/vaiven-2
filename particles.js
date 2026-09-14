@@ -111,6 +111,50 @@ export function morphStep(particles, progress, ease = easeInOutCubic) {
   }
 }
 
+// Muestreo de imagen y cerebro placeholder (browser). Usan document/Image pero SOLO
+// dentro del cuerpo (en runtime); no se ejecuta nada de esto al importar el módulo.
+
+// Carga un PNG y lo muestrea (SPEC §3: canvas oculto → getImageData → sampleCanvasPixels).
+function loadImage(src) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = reject;
+    img.src = src;
+  });
+}
+
+export async function sampleShape(imagePath, count) {
+  const img = await loadImage(imagePath);
+  const S = 512;
+  const c = document.createElement('canvas');
+  c.width = S; c.height = S;
+  const ctx = c.getContext('2d');
+  // encajar preservando aspecto, centrado
+  const scale = Math.min(S / img.width, S / img.height);
+  const dw = img.width * scale, dh = img.height * scale;
+  ctx.drawImage(img, (S - dw) / 2, (S - dh) / 2, dw, dh);
+  return sampleCanvasPixels(ctx.getImageData(0, 0, S, S), count);
+}
+
+// Silueta de cerebro PLACEHOLDER dibujada por código (mientras no está el PNG real).
+// Dos lóbulos + bultos → forma rellena reconocible como "cerebro-ish". Se reemplaza
+// por sampleShape('resources/cerebro.png', count) cuando llegue el asset real.
+export function placeholderBrainPoints(count) {
+  const S = 512;
+  const c = document.createElement('canvas');
+  c.width = S; c.height = S;
+  const ctx = c.getContext('2d');
+  ctx.fillStyle = '#000';
+  const blob = (x, y, rx, ry) => { ctx.beginPath(); ctx.ellipse(x, y, rx, ry, 0, 0, Math.PI * 2); ctx.fill(); };
+  blob(S * 0.50, S * 0.50, S * 0.34, S * 0.26); // masa central
+  blob(S * 0.36, S * 0.44, S * 0.15, S * 0.15); // lóbulo izq
+  blob(S * 0.64, S * 0.44, S * 0.15, S * 0.15); // lóbulo der
+  blob(S * 0.50, S * 0.36, S * 0.18, S * 0.13); // frontal
+  blob(S * 0.50, S * 0.64, S * 0.20, S * 0.12); // cerebelo
+  return sampleCanvasPixels(ctx.getImageData(0, 0, S, S), count);
+}
+
 // Capa 2: la clase que orquesta (browser). NADA de esto corre al importar el módulo:
 // todo acceso a document/window/rAF vive dentro de métodos.
 
@@ -129,6 +173,44 @@ export class ParticleSystem {
     this._seedShape(shapeCirculo(count));
     this._resize();
     window.addEventListener('resize', () => this._resize());
+    // formas precalculadas UNA vez (SPEC §3). El cerebro se registra async aparte.
+    this._shapes = {
+      punto: shapePunto(count),
+      circulo: shapeCirculo(count),
+      cinco: shapeCinco(count),
+      cerebro: placeholderBrainPoints(count),
+    };
+    this._shapeName = 'circulo';
+    this._progress = 1;
+    this._animating = false;
+    this._morphStart = 0;
+    this.morphDuration = 1.2; // segundos
+  }
+
+  registerShape(name, points) {
+    this._shapes[name] = points; // permite inyectar el cerebro real (async) después
+  }
+
+  // Arranca una transición animada hacia `shapeName` (progress 0→1 en morphDuration).
+  morphTo(shapeName) {
+    const pts = this._shapes[shapeName];
+    if (!pts) return;
+    setTargets(this.particles, pts);      // snapshot del origen + nuevo objetivo
+    this._shapeName = shapeName;
+    if (this.reducedMotion) {              // reduced-motion: salto directo a la forma final
+      this._progress = 1; this._animating = false;
+      morphStep(this.particles, 1);
+    } else {
+      this._progress = 0; this._animating = true;
+      this._morphStart = performance.now();
+    }
+  }
+
+  // Scrub manual del morph actual (para el slider del lab / y para el scroll en M3).
+  setProgressManual(v) {
+    this._animating = false;
+    this._progress = v;
+    morphStep(this.particles, v);
   }
 
   // Coloca las partículas directamente en una forma (posición y origen y objetivo).
@@ -162,6 +244,11 @@ export class ParticleSystem {
     const dt = (now - this._lastT) / 1000;
     this._lastT = now;
     if (!this.reducedMotion) this.rotation += this.rotationSpeed * dt;
+    if (this._animating) {
+      this._progress = Math.min(1, (now - this._morphStart) / 1000 / this.morphDuration);
+      morphStep(this.particles, this._progress);
+      if (this._progress >= 1) this._animating = false;
+    }
     this._render();
     requestAnimationFrame(this._frame.bind(this));
   }

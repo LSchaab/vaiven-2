@@ -8,6 +8,13 @@ export const lerp = (a, b, t) => a + (b - a) * t;
 export const easeInOutCubic = (t) =>
   t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 
+export const easeInQuart = (t) => t * t * t * t;
+
+export const easeOutBack = (t) => {
+  const c1 = 1.70158, c3 = c1 + 1;
+  return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2);
+};
+
 // Paleta canónica (espeja los tokens de home.css). Azul = #2222a0 (design doc §7.5).
 export const PALETTE = {
   naranja: '#FF5B23', azul: '#2222a0',
@@ -311,6 +318,7 @@ export class ParticleSystem {
     this.pointSize = 2.5;      // tamaño base del punto (px), escalado por perspectiva
     this.bgColor = '#ffffff';  // fondo actual: estelas conscientes del fondo
     this.trails = false;
+    this.ease = easeInOutCubic; // easing del morph, seteable por bloque (Palanca C)
     this._frames = 0; this._fpsT = performance.now(); this.onFps = null;
   }
 
@@ -337,7 +345,7 @@ export class ParticleSystem {
   setProgressManual(v) {
     this._animating = false;
     this._progress = v;
-    morphStep(this.particles, v);
+    morphStep(this.particles, v, this.ease);
   }
 
   // Coloca las partículas directamente en una forma (posición y origen y objetivo).
@@ -373,7 +381,7 @@ export class ParticleSystem {
     if (!this.reducedMotion) this.rotation += this.rotationSpeed * dt;
     if (this._animating) {
       this._progress = Math.min(1, (now - this._morphStart) / 1000 / this.morphDuration);
-      morphStep(this.particles, this._progress);
+      morphStep(this.particles, this._progress, this.ease);
       if (this._progress >= 1) this._animating = false;
     }
     this._render();

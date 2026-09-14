@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { lerp, easeInOutCubic, rotateY, project, PARTICLE_COUNT, createParticles, shapePunto, shapeCirculo, shapeCinco, sampleCanvasPixels, maskDarkOpaque, dilateMask, maskBrainLineArt, setTargets, morphStep, PALETTE, duotoneColor } from '../particles.js';
+import { lerp, easeInOutCubic, easeInQuart, easeOutBack, rotateY, project, PARTICLE_COUNT, createParticles, shapePunto, shapeCirculo, shapeCinco, sampleCanvasPixels, maskDarkOpaque, dilateMask, maskBrainLineArt, setTargets, morphStep, PALETTE, duotoneColor } from '../particles.js';
 
 test('lerp interpola los extremos y el medio', () => {
   assert.equal(lerp(0, 10, 0), 0);
@@ -180,4 +180,21 @@ test('duotoneColor: mix=1 desatura al COLOR ANCLA secundario (no gris)', () => {
   assert.equal(duotoneColor(0.9, 1, PALETTE.naranja, PALETTE.azul), 'rgb(180,180,237)');
   // ancla explícita (verde #167A72 = rgb(22,122,114))
   assert.equal(duotoneColor(0.9, 1, PALETTE.naranja, PALETTE.azul, PALETTE.verde), 'rgb(22,122,114)');
+});
+
+test('easeInQuart: extremos fijos y arranque lento', () => {
+  assert.equal(easeInQuart(0), 0);
+  assert.equal(easeInQuart(1), 1);
+  assert.ok(Math.abs(easeInQuart(0.5) - 0.0625) < 1e-9, 'f(0.5)=0.5^4');
+  // monótona creciente
+  for (let t = 0; t < 1; t += 0.1) assert.ok(easeInQuart(t + 0.05) >= easeInQuart(t));
+});
+
+test('easeOutBack: extremos fijos y overshoot > 1 antes de asentar', () => {
+  assert.ok(Math.abs(easeOutBack(0)) < 1e-9, 'f(0)=0');
+  assert.ok(Math.abs(easeOutBack(1) - 1) < 1e-9, 'f(1)=1');
+  // en algún punto de (0,1) el back-ease pasa de 1 (rebote)
+  let overshoots = false;
+  for (let t = 0.5; t < 1; t += 0.02) if (easeOutBack(t) > 1) overshoots = true;
+  assert.ok(overshoots, 'easeOutBack debe superar 1 en algún t de (0,1)');
 });

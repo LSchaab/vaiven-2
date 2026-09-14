@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { lerp, easeInOutCubic, rotateY, project, PARTICLE_COUNT } from '../particles.js';
+import { lerp, easeInOutCubic, rotateY, project, PARTICLE_COUNT, createParticles, shapePunto, shapeCirculo, shapeCinco, sampleCanvasPixels, setTargets, morphStep } from '../particles.js';
 
 test('lerp interpola los extremos y el medio', () => {
   assert.equal(lerp(0, 10, 0), 0);
@@ -37,4 +37,69 @@ test('project: z negativo (más cerca) da scale > 1; z positivo da scale < 1', (
 
 test('PARTICLE_COUNT arranca en 4000', () => {
   assert.equal(PARTICLE_COUNT, 4000);
+});
+
+const rngSeq = (vals) => { let i = 0; return () => vals[i++ % vals.length]; };
+
+test('createParticles: largo correcto y los 10 campos en cero salvo seed', () => {
+  const ps = createParticles(3, rngSeq([0.1, 0.2, 0.3]));
+  assert.equal(ps.length, 3);
+  for (const k of ['x','y','z','tx','ty','tz','ox','oy','oz']) assert.equal(ps[0][k], 0);
+  assert.ok(ps[0].seed >= 0 && ps[0].seed < 1);
+});
+
+test('shapePunto: todas dentro de un radio chico (~0.02) en el plano', () => {
+  const pts = shapePunto(500);
+  for (const p of pts) {
+    const r = Math.hypot(p.x, p.y);
+    assert.ok(r <= 0.02 + 1e-9, `r=${r} debe ser <= 0.02`);
+    assert.ok(Math.abs(p.z) <= 0.15 + 1e-9);
+  }
+  assert.equal(pts.length, 500);
+});
+
+test('shapeCirculo: disco lleno de radio <= 1 y espesor z en banda fina', () => {
+  const pts = shapeCirculo(500);
+  for (const p of pts) {
+    assert.ok(Math.hypot(p.x, p.y) <= 1 + 1e-9);
+    assert.ok(Math.abs(p.z) <= 0.15 + 1e-9);
+  }
+});
+
+test('shapeCinco: los puntos caen en 5 cúmulos alrededor de 5 centros', () => {
+  const centers = [ [0,0], [-0.6,0.6], [0.6,0.6], [-0.6,-0.6], [0.6,-0.6] ];
+  const pts = shapeCinco(1000);
+  for (const p of pts) {
+    const nearest = Math.min(...centers.map(([cx,cy]) => Math.hypot(p.x-cx, p.y-cy)));
+    assert.ok(nearest <= 0.25 + 1e-9, `punto lejos de todo centro: ${nearest}`);
+  }
+});
+
+test('sampleCanvasPixels: solo píxeles alpha>128, normalizados a [-1,1]', () => {
+  // imagen 2x2: solo el píxel (1,0) es opaco (alpha 255), el resto transparente
+  const width = 2, height = 2;
+  const data = new Uint8ClampedArray(2 * 2 * 4); // todo 0 (alpha 0)
+  const opaqueIndex = (0 * width + 1); // fila 0, col 1
+  data[opaqueIndex * 4 + 3] = 255;     // alpha del píxel opaco
+  const pts = sampleCanvasPixels({ data, width, height }, 10);
+  assert.equal(pts.length, 10);
+  for (const p of pts) {
+    assert.ok(p.x >= -1 - 1e-9 && p.x <= 1 + 1e-9);
+    assert.ok(p.y >= -1 - 1e-9 && p.y <= 1 + 1e-9);
+    assert.ok(Math.abs(p.z) <= 0.15 + 1e-9);
+    // todos deben salir del único píxel opaco (col 1, fila 0) → mismo x,y
+    assert.ok(Math.abs(p.x - pts[0].x) < 1e-9 && Math.abs(p.y - pts[0].y) < 1e-9);
+  }
+});
+
+test('setTargets snapshotea el origen y fija el objetivo; morphStep interpola', () => {
+  const ps = createParticles(1, () => 0.5);
+  ps[0].x = ps[0].y = ps[0].z = 0; // en el origen
+  setTargets(ps, [{ x: 1, y: 2, z: 0.1 }]);
+  assert.deepEqual([ps[0].ox, ps[0].oy, ps[0].oz], [0, 0, 0]);
+  assert.deepEqual([ps[0].tx, ps[0].ty, ps[0].tz], [1, 2, 0.1]);
+  morphStep(ps, 0);
+  assert.ok(Math.abs(ps[0].x - 0) < 1e-9, 'progress 0 = origen');
+  morphStep(ps, 1);
+  assert.ok(Math.abs(ps[0].x - 1) < 1e-9 && Math.abs(ps[0].y - 2) < 1e-9, 'progress 1 = objetivo');
 });
